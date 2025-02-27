@@ -1,5 +1,11 @@
-import Empresa from './empresas.model.js';
+import path from 'path';
+import fs from 'fs';
 import ExcelJS from 'exceljs';
+import { fileURLToPath } from 'url';
+import Empresa from './empresas.model.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const createEmpresa = async (req, res) => {
     try {
@@ -64,7 +70,7 @@ export const updateEmpresaById = async (req, res) => {
         if (!empresa) {
             return res.status(404).json({
                 success: false,
-                message: 'Empresa no encontrada'
+                message: "Empresa no encontrada"
             });
         }
 
@@ -107,11 +113,19 @@ export const generateReport = async (req, res) => {
             });
         });
 
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.setHeader('Content-Disposition', 'attachment; filename=empresas.xlsx');
+        const publicDir = path.join(__dirname, '../../public');
+        if (!fs.existsSync(publicDir)) {
+            fs.mkdirSync(publicDir);
+        }
 
-        await workbook.xlsx.write(res);
-        res.end();
+        const filePath = path.join(publicDir, 'empresas.xlsx');
+        await workbook.xlsx.writeFile(filePath);
+
+        res.status(200).json({
+            success: true,
+            message: 'Reporte generado exitosamente',
+            filePath: `/public/empresas.xlsx`
+        });
     } catch (error) {
         res.status(500).json({
             success: false,

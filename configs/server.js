@@ -4,6 +4,8 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
+import path from "path";
+import { fileURLToPath } from 'url';
 import { dbConnection } from "./mongo.js";
 import authRoutes from "../src/auth/auth.routes.js";
 import empresaRoutes from "../src/empresas/empresas.routes.js";
@@ -12,6 +14,9 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const middlewares = (app) => {
     app.use(express.urlencoded({ extended: false }));
     app.use(express.json());
@@ -19,6 +24,7 @@ const middlewares = (app) => {
     app.use(helmet());
     app.use(morgan("dev"));
     app.use(apiLimiter);
+    app.use('/public', express.static(path.join(__dirname, 'public')));
 };
 
 const conectarDB = async () => {
